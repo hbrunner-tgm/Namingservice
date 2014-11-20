@@ -1,0 +1,4 @@
+Namingservice
+=============
+
+Aufgabe fuer DEZSY
