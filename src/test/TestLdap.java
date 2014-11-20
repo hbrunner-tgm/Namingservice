@@ -3,7 +3,9 @@ package test;
 import java.util.Hashtable;
 
 import javax.naming.*;
+import javax.naming.directory.Attribute;
 import javax.naming.directory.Attributes;
+import javax.naming.directory.BasicAttributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
@@ -48,29 +50,47 @@ public class TestLdap {
 
 		DirContext ctx = new InitialDirContext(env);
 
+
 		MyObject myObject= new MyObject("Hello");
 
-		ctx.bind("javaObject", myObject);
+		try {
+			ctx.bind("cn=myobject, o=JavaObjects", myObject);
+		}catch (NameAlreadyBoundException nabe) {
+			System.out.println("Object allready bounded");
+		}
 
-		MyObject erg= (MyObject) ctx.lookup("javaObject");
+		MyObject erg= (MyObject) ctx.lookup("cn=myobject,o=JavaObjects");
+		
+		System.out.println(ctx.lookup("cn=myobject, o=JavaObjects"));
+		System.out.println(erg);
 
-		System.out.println(erg.toString());
+		ctx.removeFromEnvironment("cn=myobject");
+		
+		SearchControls searchControls = new SearchControls();
 
+		searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
+		searchControls.setCountLimit(10);
 
-		//		SearchControls searchControls = new SearchControls();
-		//
-		//		searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-		//		searchControls.setCountLimit(10);
-		//
-		//		NamingEnumeration<SearchResult> namingEnumeration = ctx.search("", "(uid=*)", new Object[]{}, searchControls);
-		//		
-		//		while (namingEnumeration.hasMore()) {
-		//			SearchResult sr = namingEnumeration.next();
-		//			System.out.println("DN: " + sr.getName());
-		//			System.out.println(sr.getAttributes().get("uid"));
-		//			System.out.println("Password:" + new String((byte[]) sr.getAttributes().get("userPassword").get()));
-		//		}
+		NamingEnumeration<SearchResult> namingEnumeration = ctx.search("cn=hb,o=Services", "(cn=*)", new Object[]{}, searchControls);
 
+		while (namingEnumeration.hasMore()) {
+			SearchResult sr = namingEnumeration.next();
+
+			System.out.println("GivenName: " + (String) sr.getAttributes().get("givenName").get() );
+			System.out.println("cn: " + (String) sr.getAttributes().get("cn").get() );
+			System.out.println("uid: " + (String) sr.getAttributes().get("uid").get() );
+			System.out.println("mail: " + (String) sr.getAttributes().get("mail").get() );
+			System.out.println("telephoneNumber: " + (String) sr.getAttributes().get("telephoneNumber").get() );
+			System.out.println("facsimileTelephoneNumber: " + (String) sr.getAttributes().get("facsimileTelephoneNumber").get() );
+			System.out.println("Password:" + new String((byte[]) sr.getAttributes().get("userPassword").get()));
+		}
+
+		/**
+		 * 
+		 * givenName: Ari sn: Ayvazyan cn: aa uid: aa userPassword: ******** mail: aari@student.tgm.ac.at telephoneNumber: +43 0664 7239238 facsimileTelephoneNumber: +23 458425 
+		 * 
+		 */
+		
 		ctx.close();
 	}
 }
